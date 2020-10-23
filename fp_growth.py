@@ -28,6 +28,67 @@ def construct_sorted_itemset(dataset, sorted_freq_items):
     print(ordered)
     return ordered
 
+def find_conditional_pattern(header_table, sorted_freq_items):
+    conditional_pattern_base = {}
+    for item in sorted_freq_items:
+        patterns_list = []
+        node_list = header_table.get(item)
+        # Find the path of nodes in header table
+        for node in node_list:
+            cur = node.parent
+            path = []
+            # Loop til the root
+            while cur:
+                if cur.item != "root":
+                    path.append(cur.item)
+                cur = cur.parent
+            path.reverse()
+            # Add current path and its weight to the
+            patterns_list.append({path: node.value})
+        conditional_pattern_base.update({item: patterns_list})
+    return conditional_pattern_base
+
+def Freq_tree(prefix, value, minimumSup, orderList, patternList):
+    itemsets = []
+    #  將所有的condition pattern base 建成 itesmset
+    for item in value:
+        count = int(item[1])
+        #根據 path權重決定出現次數
+        while count:
+            itemsets.append(item[0])
+            count += -1
+    #同FP-Tree流程
+    c1 = Apriori.C1(itemsets)
+    l1 = Apriori.Lk(c1, minimumSup)
+    orderList = Sort(l1)
+    #同FP-Tree流程的step1
+    freqHd = FPtree(itemsets, orderList)
+
+    # 中止條件 如果 headerTable空 跳出遞迴
+    if not freqHd:
+        return patternList
+
+    orderList.reverse()
+    #同FP-Tree流程的step2
+    pathDic = CondPatternBase(freqHd, orderList)
+
+    #同FP-Tree流程的step3
+    for key, value in pathDic.items():
+        count = 0
+        for item in value:
+            count = count + int(item[1])
+        pattern = []
+        #key to list
+        item = []
+        item.append(key)
+        # 與headerTable中的 item組成 frequent Pattern
+        pattern.append(prefix + item)
+        # frequent
+        pattern.append(count)
+        patternList.append(pattern)
+        FreqTree(prefix + item, value, minimumSup, orderList, patternList)
+
+    return patternList
 
 if __name__ == "__main__":
     import pandas as pd
