@@ -34,6 +34,6 @@ class FPTree:
                 if header_list:
                     header_list.append(new_node)
                 else:
-                    header_table.update({item: [new_node]})
+                    self.header_table.update({item: [new_node]})
                 
 

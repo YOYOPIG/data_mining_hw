@@ -1,3 +1,5 @@
+import preprocessor
+
 def first_scan(dataset):
     C1 = {}
     for transaction in dataset:
@@ -43,19 +45,8 @@ def apriori(dataset, min_support):
         Lk = find_Lk(candidates, min_support)
         frequent_itemsets.append(Lk)
         candidates = find_Ck(Lk, dataset)
+    print(frequent_itemsets)
 
 if __name__ == "__main__":
-    import pandas as pd
-
-    data = pd.read_csv(
-        "data.txt", sep="\\s+", names=["id", "seq", "item"]
-    )
-
-    df = pd.DataFrame(data)
-    df = df.groupby("id")["item"].apply(list)
-
-    # Put into List[[],[],.......,[]]
-    dataset = []
-    for data in df:
-        dataset.append(data)
-    apriori(dataset, 5)
+    dataset = preprocessor.preprocess()
+    apriori(dataset, 500)

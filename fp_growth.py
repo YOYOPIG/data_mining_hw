@@ -1,3 +1,5 @@
+import fp_tree
+import preprocessor
 def construct_frequency_list(dataset, min_support):
     items = {}
     sorted_freq_items = {}
@@ -14,7 +16,7 @@ def construct_frequency_list(dataset, min_support):
             del freq_items[key]
     sorted_freq_items = sorted(freq_items.items(), key=lambda x: (-x[1], x[0]))
     sorted_freq_items = dict(sorted_freq_items)
-    print(sorted_freq_items)
+    #print(sorted_freq_items)
     return sorted_freq_items
 
 def construct_sorted_itemset(dataset, sorted_freq_items):
@@ -25,12 +27,13 @@ def construct_sorted_itemset(dataset, sorted_freq_items):
             if item in transaction:
                 tmp.append(item)
         ordered.append(tmp)
-    print(ordered)
+    #print(ordered)
     return ordered
 
 def find_conditional_pattern(header_table, sorted_freq_items):
     conditional_pattern_base = {}
     for item in sorted_freq_items:
+        # print(item)
         patterns_list = []
         node_list = header_table.get(item)
         # Find the path of nodes in header table
@@ -44,65 +47,60 @@ def find_conditional_pattern(header_table, sorted_freq_items):
                 cur = cur.parent
             path.reverse()
             # Add current path and its weight to the
-            patterns_list.append({path: node.value})
+            patterns_list.append({tuple(path): node.value})
         conditional_pattern_base.update({item: patterns_list})
+    # print(conditional_pattern_base)
     return conditional_pattern_base
 
-def Freq_tree(prefix, value, minimumSup, orderList, patternList):
+def freq_tree(prefix, value, min_support, ordered, patternList):
     itemsets = []
-    #  將所有的condition pattern base 建成 itesmset
+    # print(value)
     for item in value:
-        count = int(item[1])
-        #根據 path權重決定出現次數
+        # print(list(item.keys())[0])
+        count = int(list(item.values())[0])
         while count:
-            itemsets.append(item[0])
+            itemsets.append(list(item.keys())[0])
             count += -1
-    #同FP-Tree流程
-    c1 = Apriori.C1(itemsets)
-    l1 = Apriori.Lk(c1, minimumSup)
-    orderList = Sort(l1)
-    #同FP-Tree流程的step1
-    freqHd = FPtree(itemsets, orderList)
+    freq_list = construct_frequency_list(itemsets, min_support)
+    itemset = construct_sorted_itemset(dataset, freq_list)
+    tree = fp_tree.FPTree(itemset)
+    for transaction in itemset:
+        tree.insert(transaction)
 
-    # 中止條件 如果 headerTable空 跳出遞迴
-    if not freqHd:
+    if not tree.header_table:
+        # print(patternList)
         return patternList
 
-    orderList.reverse()
-    #同FP-Tree流程的step2
-    pathDic = CondPatternBase(freqHd, orderList)
 
-    #同FP-Tree流程的step3
-    for key, value in pathDic.items():
+    conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list)
+
+    for key, value in conditional_pattern_base.items():
         count = 0
         for item in value:
-            count = count + int(item[1])
+            count = count + int(list(item.values())[0])
         pattern = []
-        #key to list
         item = []
         item.append(key)
-        # 與headerTable中的 item組成 frequent Pattern
         pattern.append(prefix + item)
-        # frequent
         pattern.append(count)
         patternList.append(pattern)
-        FreqTree(prefix + item, value, minimumSup, orderList, patternList)
+        freq_tree(prefix + item, value, min_support, ordered, patternList)
 
     return patternList
 
 if __name__ == "__main__":
-    import pandas as pd
-
-    data = pd.read_csv(
-        "data.txt", sep="\\s+", names=["id", "seq", "item"]
-    )
-
-    df = pd.DataFrame(data)
-    df = df.groupby("id")["item"].apply(list)
-
-    # Put into List[[],[],.......,[]]
-    dataset = []
-    for data in df:
-        dataset.append(data)
-    freq = construct_frequency_list(dataset, 10)
-    construct_sorted_itemset(dataset, freq)
+    dataset = preprocessor.preprocess()
+    # main
+    min_support = 500
+    ptn = {}
+    freq_list = construct_frequency_list(dataset, min_support)
+    itemset = construct_sorted_itemset(dataset, freq_list)
+    tree = fp_tree.FPTree(itemset)
+    for transaction in itemset:
+        tree.insert(transaction)
+    conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list)
+    for key, value in conditional_pattern_base.items():
+        if value:
+            patternList = freq_tree(list(), value, min_support, itemset, list())
+            ptn.update({key: patternList})
+    print(ptn)
