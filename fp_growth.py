@@ -1,5 +1,6 @@
 import fp_tree
 import preprocessor
+
 def construct_frequency_list(dataset, min_support):
     items = {}
     sorted_freq_items = {}
@@ -42,7 +43,7 @@ def find_conditional_pattern(header_table, sorted_freq_items):
             path = []
             # Loop til the root
             while cur:
-                if cur.item != "root":
+                if cur.item != 'root':
                     path.append(cur.item)
                 cur = cur.parent
             path.reverse()
@@ -52,7 +53,7 @@ def find_conditional_pattern(header_table, sorted_freq_items):
     # print(conditional_pattern_base)
     return conditional_pattern_base
 
-def freq_tree(prefix, value, min_support, ordered, patternList):
+def fp_tree_growth(prefix, value, min_support, ordered, patternList):
     itemsets = []
     # print(value)
     for item in value:
@@ -84,7 +85,7 @@ def freq_tree(prefix, value, min_support, ordered, patternList):
         pattern.append(prefix + item)
         pattern.append(count)
         patternList.append(pattern)
-        freq_tree(prefix + item, value, min_support, ordered, patternList)
+        fp_tree_growth(prefix + item, value, min_support, ordered, patternList)
 
     return patternList
 
@@ -101,6 +102,6 @@ if __name__ == "__main__":
     conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list)
     for key, value in conditional_pattern_base.items():
         if value:
-            patternList = freq_tree(list(), value, min_support, itemset, list())
+            patternList = fp_tree_growth(list(), value, min_support, itemset, list())
             ptn.update({key: patternList})
     print(ptn)
