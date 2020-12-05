@@ -13,6 +13,7 @@ class Bear():
         self.habitant_area = features.habitant_area[random.randint(0, 3)]
         self.habitant_height = random.normal(loc=2000, scale=800)
         self.born_weight = random.normal(loc=325, scale=38)
+        self.parent_alive = random.choice(features.parent_alive, 1, p=[0.6, 0.4])
         self.claw_size = random.normal(loc=4, scale=1)
         self.injury = random.choice(features.injury, 1, p=[0.1, 0.2, 0.4, 0.3])
         self.sickness = random.choice(features.sickness, 1, p=[0.1, 0.2, 0.4, 0.3])
@@ -25,7 +26,7 @@ class Bear():
             self.olfactory_sensation = 'average'
         self.tail_length = random.normal(loc=8, scale=1)
         self.ear_size = random.normal(loc=10, scale=1)
-        self.head_size = features.head_size[random.randint(0, 3)]
+        self.head_size = random.normal(loc=50, scale=5)
         self.front_paw = random.normal(loc=12, scale=1.5)
         self.rear_paw = random.normal(loc=20, scale=1.5)
         self.fur_length = random.normal(loc=8, scale=2)
@@ -47,10 +48,13 @@ class Bear():
                 self.label = 'danger'
         else:
             if self.age<2:
-                if self.born_weight<250:
+                if self.parent_alive=='dead':
                     self.label = 'danger'
                 else:
-                    self.label = 'ok'
+                    if self.born_weight<250:
+                        self.label = 'danger'
+                    else:
+                        self.label = 'ok'
             elif self.age>28:
                 if self.injury=='no' or self.sickness=='no':
                     self.label = 'ok'
@@ -85,14 +89,64 @@ class Bear():
                                 self.label = 'ok'
         return
 
+    def to_list(self):
+        if self.gender=='male':
+            g=0
+        else:
+            g=1
+        if self.injury=='no':
+            inj=0
+        elif self.injury=='mild':
+            inj=1
+        elif self.injury=='moderate':
+            inj=2
+        else:
+            inj=3
+        if self.sickness=='no':
+            s=0
+        elif self.sickness=='mild':
+            s=1
+        elif self.sickness=='moderate':
+            s=2
+        else:
+            s=3
+        if self.olfactory_sensation=='bad':
+            o=0
+        elif self.olfactory_sensation=='average':
+            o=1
+        else:
+            o=2
+        if self.fur_color=='dark':
+            f=0
+        else:
+            f=1
+        lst = [self.age, g, self.height, self.weight, self.habitant_height, self.born_weight, self.claw_size,
+               inj, s, o, self.tail_length, self.ear_size, self.head_size, self.front_paw, 
+               self.rear_paw, self.fur_length, f, self.shoulder_width]
+        # one hot
+        if self.habitant_area=='zoo':
+            lst.append(1)
+            lst.append(0)
+            lst.append(0)
+        elif self.habitant_area=='outskirts':
+            lst.append(0)
+            lst.append(1)
+            lst.append(0)
+        else:
+            lst.append(0)
+            lst.append(0)
+            lst.append(1)
 
-def generate_bears(num):
-    bears=[]
-    for i in range(num):
-        bear = Bear()
-        bears.append(bear)
-    return bears
-
-bears = generate_bears(10)
-for bear in bears:
-    print(bear.label + ' ' + bear.habitant_area)
+        if self.food_tend=='meat':
+            lst.append(1)
+            lst.append(0)
+            lst.append(0)
+        elif self.food_tend=='balanced':
+            lst.append(0)
+            lst.append(1)
+            lst.append(0)
+        else:
+            lst.append(0)
+            lst.append(0)
+            lst.append(1)
+        return lst
