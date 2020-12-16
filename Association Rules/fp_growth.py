@@ -92,7 +92,7 @@ def fp_tree_growth(prefix, value, min_support, ordered, patternList):
 if __name__ == "__main__":
     dataset = preprocessor.preprocess()
     # main
-    min_support = 500
+    min_support = 300
     ptn = {}
     freq_list = construct_frequency_list(dataset, min_support)
     itemset = construct_sorted_itemset(dataset, freq_list)
@@ -100,8 +100,10 @@ if __name__ == "__main__":
     for transaction in itemset:
         tree.insert(transaction)
     conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list)
-    for key, value in conditional_pattern_base.items():
-        if value:
-            patternList = fp_tree_growth(list(), value, min_support, itemset, list())
-            ptn.update({key: patternList})
-    print(ptn)
+    print(conditional_pattern_base)
+    # for key, value in conditional_pattern_base.items():
+    #     if value:
+    #         patternList = fp_tree_growth(list(), value, min_support, itemset, list())
+    #         ptn.update({key: patternList})
+    # print(sorted(ptn.keys()))
+    # print(ptn)

@@ -79,9 +79,9 @@ def find_Ck_ht(Lk, dataset):
 def traverse_hash_tree(root, items, path, count_dict):
     if bool(root)==False: # End of recursive, push path as ans
         if count_dict.get(path):
-            count_dict.update({path}:count_dict[path]+1)
+            count_dict.update({path:count_dict[path]+1})
         else:
-            count_dict.update({path}:1)
+            count_dict.update({path:1})
     for item in root: # keep looping
         if item in items:
             traverse_hash_tree(root[item], items.remove(item), path.append(item), count_dict)
