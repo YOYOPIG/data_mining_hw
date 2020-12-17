@@ -99,7 +99,7 @@ def apriori(dataset, min_support):
         Lk = find_Lk(candidates, min_support)
         frequent_itemsets.append(Lk)
         candidates = find_Ck(Lk, dataset)
-    print(frequent_itemsets)
+    # print(frequent_itemsets)
     return frequent_itemsets
 
 if __name__ == "__main__":

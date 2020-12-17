@@ -1,5 +1,6 @@
 import fp_tree
 import preprocessor
+import rule_generator
 
 def construct_frequency_list(dataset, min_support):
     items = {}
@@ -89,6 +90,33 @@ def fp_tree_growth(prefix, value, min_support, ordered, patternList):
 
     return patternList
 
+def postprocess_for_generator(ptn):
+    final = []
+    for k in sorted(ptn.keys()):
+        tmp=[]
+        tmp.append(k)
+        final.append(tmp)
+        if not ptn[k]:
+            continue
+        for item in ptn[k]:
+            tmp = item[0]
+            tmp.append(k)
+            final.append(tmp)
+    # print(final)
+    ctr = 0
+    cleaned = []
+    for item in final:
+        # print(item)
+        for data in dataset:
+            if set(item).issubset(set(data)):
+                ctr += 1
+        if ctr >= min_support:
+            cleaned.append((frozenset(item), ctr*0.001))
+            # print(item)
+            # print(ctr)
+        ctr = 0
+    return cleaned
+
 if __name__ == "__main__":
     dataset = preprocessor.preprocess()
     # main
@@ -96,14 +124,16 @@ if __name__ == "__main__":
     ptn = {}
     freq_list = construct_frequency_list(dataset, min_support)
     itemset = construct_sorted_itemset(dataset, freq_list)
+    # print(itemset)
     tree = fp_tree.FPTree(itemset)
     for transaction in itemset:
         tree.insert(transaction)
-    conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list)
-    print(conditional_pattern_base)
-    # for key, value in conditional_pattern_base.items():
-    #     if value:
-    #         patternList = fp_tree_growth(list(), value, min_support, itemset, list())
-    #         ptn.update({key: patternList})
-    # print(sorted(ptn.keys()))
-    # print(ptn)
+    conditional_pattern_base = find_conditional_pattern(tree.header_table,freq_list) #correct
+    # print(conditional_pattern_base[28])
+    for key, value in conditional_pattern_base.items():
+        if value:
+            patternList = fp_tree_growth(list(), value, min_support, itemset, list())
+            ptn.update({key: patternList})
+    
+    cleaned = postprocess_for_generator(ptn)
+    rule_generator.generate_rule_fp("data.txt", cleaned)
